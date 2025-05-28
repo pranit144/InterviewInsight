@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technical Interview Analyzer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .upload-section {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+    #uploadForm {
+      margin: 20px 0;
+    }
+    .results-container {
+      margin-top: 30px;
+    }
+    .progress-bar {
+      background-color: #3498db;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .loading {
+      text-align: center;
+      margin: 20px 0;
+      display: none;
+    }
+    .error {
+      color: #e74c3c;
+      padding: 10px;
+      background-color: #fde8e8;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    /* Print styles */
+    @media print {
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .container {
+        box-shadow: none;
+        padding: 20px;
+      }
+      .upload-section,
+      #uploadForm,
+      #loading,
+      #downloadExcelBtn,
+      .btn {
+        display: none !important;
+      }
+      .assessment-card {
+        break-inside: avoid;
+      }
+    }
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .loading-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: #2c3e50;
+        font-size: 18px;
+        margin-top: 15px;
+    }
+
+    .progress-steps {
+        margin-top: 15px;
+        text-align: left;
+    }
+
+    .step {
+        margin: 8px 0;
+        color: #666;
+    }
+
+    .step.active {
+        color: #3498db;
+        font-weight: bold;
+    }
+
+    .step.completed {
+        color: #2ecc71;
+    }
+
+    .score-display {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .score-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-right: 15px;
+        color: #2c3e50;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .progress {
+        flex-grow: 1;
+        height: 15px;
+    }
+
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+
+    .assessment-card {
+        margin-bottom: 25px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .assessment-card .card-header {
+        font-weight: bold;
+        padding: 15px;
+    }
+
+    .card-header-technical {
+        background-color: #4a90e2;
+        color: white;
+    }
+
+    .card-header-problem {
+        background-color: #50c878;
+        color: white;
+    }
+
+    .card-header-communication {
+        background-color: #6a5acd;
+        color: white;
+    }
+
+    .card-header-questions {
+        background-color: #ff7f50;
+        color: white;
+    }
+
+    .card-header-recommendation {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+    .card-header-emotions {
+        background-color: #9b59b6;
+        color: white;
+    }
+
+    .badge-excellent {
+        background-color: #28a745;
+    }
+
+    .badge-good {
+        background-color: #4a90e2;
+    }
+
+    .badge-average {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-poor {
+        background-color: #dc3545;
+    }
+
+    .recommendation-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .recommendation-badge {
+        padding: 10px 20px;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        border-radius: 30px;
+    }
+
+    .recommendation-hire {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .recommendation-strong {
+        background-color: #4a90e2;
+        color: white;
+    }
+
+    .recommendation-consider {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .recommendation-reject {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .transcript-container {
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        border: 1px solid #dee2e6;
+    }
+
+    #accordionTranscript .accordion-button:not(.collapsed) {
+        background-color: #e7f5ff;
+        color: #0c63e4;
+    }
+
+    .question-card {
+        margin-bottom: 15px;
+        border-left: 4px solid #4a90e2;
+    }
+
+    .question-text {
+        font-weight: bold;
+    }
+
+    .answer-quality {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        margin: 5px 0;
+    }
+
+    .emotion-bar {
+        height: 30px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        position: relative;
+    }
+
+    .emotion-label {
+        position: absolute;
+        left: 10px;
+        top: 5px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    }
+
+    .emotion-percentage {
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    }
+
+    .emotion-angry {
+        background-color: #e74c3c;
+    }
+
+    .emotion-disgust {
+        background-color: #8e44ad;
+    }
+
+    .emotion-fear {
+        background-color: #34495e;
+    }
+
+    .emotion-happy {
+        background-color: #27ae60;
+    }
+
+    .emotion-neutral {
+        background-color: #7f8c8d;
+    }
+
+    .emotion-sad {
+        background-color: #3498db;
+    }
+
+    .emotion-surprise {
+        background-color: #f39c12;
+    }
+
+    /* Add new styles for video preview */
+    .video-preview-container {
+      margin-top: 15px;
+      max-width: 100%;
+      display: none;
+    }
+
+    .video-preview {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      display: block;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Add processing status styles */
+    .processing-status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f8f9fa;
+      display: none;
+    }
+
+    .processing-status.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .processing-status.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Improve loading overlay */
+    .loading-overlay .progress {
+      width: 100%;
+      margin-top: 15px;
+      height: 10px;
+    }
+
+    .step-status {
+      display: inline-block;
+      margin-left: 10px;
+      font-size: 14px;
+    }
+
+    .step-time {
+      float: right;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing your interview recording...</div>
+        <div class="progress-steps">
+            <div class="step" id="step1">1. Uploading video file...</div>
+            <div class="step" id="step2">2. Extracting audio and analyzing emotions...</div>
+            <div class="step" id="step3">3. Transcribing audio...</div>
+            <div class="step" id="step4">4. Analyzing technical interview...</div>
+        </div>
+    </div>
+  </div>
+  <div class="container section">
+    <h1>An AI Based Analyzer for Personal Attributes</h1>
+    <p class="text-center text-muted">Upload a recording of a technical interview to get AI-powered analysis and feedback</p>
+
+    <form id="uploadForm" class="mb-4">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="candidateName" class="form-label">Candidate Name</label>
+          <input type="text" id="candidateName" name="candidate_name" class="form-control" placeholder="Enter candidate name" required>
+        </div>
+        <div class="col-md-6">
+          <label for="roleApplied" class="form-label">Role Applied For</label>
+          <input type="text" id="roleApplied" name="role_applied" class="form-control" placeholder="e.g. Senior Full Stack Developer" required>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="techSkills" class="form-label">Technical Skills to Evaluate (comma-separated)</label>
+        <input type="text" id="techSkills" name="tech_skills" class="form-control" placeholder="e.g. JavaScript, React, Node.js, System Design">
+      </div>
+      <div class="mb-3">
+        <label for="videoFile" class="form-label">Upload Interview Recording</label>
+        <input type="file" id="videoFile" name="video" accept="video/*" class="form-control" required>
+        <div class="form-text">Upload a video recording of the technical interview (.mp4, .mov, .avi)</div>
+        <div class="video-preview-container">
+          <video id="videoPreview" class="video-preview" controls>
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div id="processingStatus" class="processing-status"></div>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-analytics"></i> Analyze Interview
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Assessment Results Section -->
+  <div class="container section" id="assessmentResultContainer" style="display:none;">
+    <h2 class="text-center mb-4">Interview Assessment Results</h2>
+    <div id="candidateInfo" class="text-center mb-4"></div>
+
+    <div class="row">
+      <!-- Technical Knowledge Section -->
+      <div class="col-md-4">
+        <div class="card assessment-card">
+          <div class="card-header card-header-technical">
+            <i class="fas fa-code"></i> Technical Knowledge
+          </div>
+          <div class="card-body">
+            <div id="technicalScore" class="score-display">
+              <div class="score-number">-</div>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10"></div>
+              </div>
+            </div>
+            <h5>Strengths</h5>
+            <ul id="technicalStrengths" class="list-group list-group-flush mb-3"></ul>
+            <h5>Areas for Improvement</h5>
+            <ul id="technicalImprovements" class="list-group list-group-flush"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Problem Solving Section -->
+      <div class="col-md-4">
+        <div class="card assessment-card">
+          <div class="card-header card-header-problem">
+            <i class="fas fa-puzzle-piece"></i> Problem Solving
+          </div>
+          <div class="card-body">
+            <div id="problemSolvingScore" class="score-display">
+              <div class="score-number">-</div>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10"></div>
+              </div>
+            </div>
+            <h5>Strengths</h5>
+            <ul id="problemSolvingStrengths" class="list-group list-group-flush mb-3"></ul>
+            <h5>Areas for Improvement</h5>
+            <ul id="problemSolvingImprovements" class="list-group list-group-flush"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Communication Section -->
+      <div class="col-md-4">
+        <div class="card assessment-card">
+          <div class="card-header card-header-communication">
+            <i class="fas fa-comments"></i> Communication
+          </div>
+          <div class="card-body">
+            <div id="communicationScore" class="score-display">
+              <div class="score-number">-</div>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10"></div>
+              </div>
+            </div>
+            <h5>Strengths</h5>
+            <ul id="communicationStrengths" class="list-group list-group-flush mb-3"></ul>
+            <h5>Areas for Improvement</h5>
+            <ul id="communicationImprovements" class="list-group list-group-flush"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emotion Analysis Section -->
+    <div class="card assessment-card">
+      <div class="card-header card-header-emotions">
+        <i class="fas fa-smile"></i> Emotion Analysis
+      </div>
+      <div class="card-body">
+        <p>Facial emotions detected throughout the interview:</p>
+        <div id="emotionAnalysis" class="mb-4"></div>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Total Faces Detected:</strong> <span id="totalFaces">-</span></p>
+            <p><strong>Frames Processed:</strong> <span id="framesProcessed">-</span></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Frames with Faces:</strong> <span id="framesWithFaces">-</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Recommendation -->
+    <div class="card assessment-card">
+      <div class="card-header card-header-recommendation">
+        <i class="fas fa-thumbs-up"></i> Overall Recommendation
+      </div>
+      <div class="card-body text-center">
+        <div id="overallRecommendation" class="recommendation-display">
+          <div class="recommendation-badge">-</div>
+        </div>
+        <div id="overallFeedback" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Questions Analysis Section -->
+    <div class="card assessment-card">
+      <div class="card-header card-header-questions">
+        <i class="fas fa-question-circle"></i> Question Analysis
+      </div>
+      <div class="card-body">
+        <div id="questionAnalysis"></div>
+      </div>
+    </div>
+
+    <!-- Interview Transcript -->
+    <div class="card">
+      <div class="card-header">
+        Interview Transcript
+      </div>
+      <div class="card-body">
+        <div class="accordion" id="accordionTranscript">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTranscript">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTranscript" aria-expanded="false" aria-controls="collapseTranscript">
+                Show Full Transcript
+              </button>
+            </h2>
+            <div id="collapseTranscript" class="accordion-collapse collapse" aria-labelledby="headingTranscript" data-bs-parent="#accordionTranscript">
+              <div class="accordion-body">
+                <div id="transcriptText" class="transcript-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-center gap-3 mt-4">
+      <button id="downloadExcelBtn" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> Download Assessment Report
+      </button>
+      <button id="printAssessmentBtn" class="btn btn-secondary">
+        <i class="fas fa-print"></i> Print Assessment
+      </button>
+      <button id="newAnalysisBtn" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Analysis
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="errorModalLabel">Error</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="errorModalBody">
+          An error occurred while processing your request.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- SheetJS (for Excel export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- FileSaver.js (for Excel download) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get DOM elements
+  const uploadForm = document.getElementById('uploadForm');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const step4 = document.getElementById('step4');
+  const assessmentResultContainer = document.getElementById('assessmentResultContainer');
+  const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+  const printAssessmentBtn = document.getElementById('printAssessmentBtn');
+  const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+  const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+  const errorModalBody = document.getElementById('errorModalBody');
+
+  // Store the current analysis results
+  let currentAnalysisResults = null;
+
+  // Test server connection on page load
+  async function testServerConnection() {
+    try {
+      const response = await fetch('/test');
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Server connection test:', data);
+      return true;
+    } catch (error) {
+      console.error('Server connection test failed:', error);
+      showError('Server connection failed. Please check if the server is running.');
+      return false;
+    }
+  }
+
+  // Test connection on page load
+  testServerConnection();
+
+  // Form submission handler
+  uploadForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    console.log('Form submission started');
+
+    // Test server connection before proceeding
+    const isServerConnected = await testServerConnection();
+    if (!isServerConnected) {
+      return;
+    }
+
+    // Get form data
+    const formData = new FormData(uploadForm);
+    const candidateName = formData.get('candidate_name');
+    const roleApplied = formData.get('role_applied');
+    const techSkills = formData.get('tech_skills');
+    const videoFile = formData.get('video');
+
+    // Validate video file
+    if (videoFile.size === 0) {
+      showError('Please select a valid video file.');
+      return;
+    }
+
+    // Check file size (max 100MB)
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    if (videoFile.size > maxSize) {
+      showError('Video file is too large. Please select a file smaller than 100MB.');
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
+    if (!allowedTypes.includes(videoFile.type)) {
+      showError('Please select a valid video file (MP4, MOV, or AVI).');
+      return;
+    }
+
+    console.log('Form data:', {
+      candidateName,
+      roleApplied,
+      techSkills,
+      videoFileName: videoFile.name,
+      videoFileSize: videoFile.size,
+      videoFileType: videoFile.type
+    });
+
+    // Validate form inputs
+    if (!candidateName || !roleApplied || !videoFile) {
+      showError('Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      loadingOverlay.style.display = 'block';
+      const startTime = Date.now();
+
+      // Update processing status
+      processingStatus.innerHTML = `
+        <div class="d-flex align-items-center">
+          <i class="fas fa-spinner fa-spin me-2"></i>
+          <div>Processing video... Please wait</div>
+        </div>
+        <div class="progress mt-2">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+        </div>
+      `;
+      processingStatus.style.display = 'block';
+      processingStatus.className = 'processing-status';
+
+      // Send video to server for analysis
+      const response = await fetch('/analyze_interview', {
+        method: 'POST',
+        body: formData
+      });
+
+      console.log('Server response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+
+      const results = await response.json();
+      console.log('Received results:', results);
+
+      if (!results || typeof results !== 'object') {
+        throw new Error('Invalid response format from server');
+      }
+
+      if (results.error) {
+        throw new Error(results.error);
+      }
+
+      // Store current results
+      currentAnalysisResults = results;
+      console.log('Results stored in currentAnalysisResults');
+
+      // Hide loading overlay
+      loadingOverlay.style.display = 'none';
+
+      // Make sure the results container is visible
+      assessmentResultContainer.style.display = 'block';
+      console.log('Results container displayed');
+
+      // Display results
+      await displayAnalysisResults(results);
+      console.log('Results displayed');
+
+      // Update processing status
+      const endTime = Date.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+      processingStatus.innerHTML = `
+        <div class="d-flex align-items-center">
+          <i class="fas fa-check-circle text-success me-2"></i>
+          <div>Analysis completed in ${duration} seconds</div>
+        </div>
+      `;
+      processingStatus.style.display = 'block';
+      processingStatus.className = 'processing-status success';
+
+      // Scroll to results
+      assessmentResultContainer.scrollIntoView({ behavior: 'smooth' });
+      console.log('Scrolled to results');
+
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      loadingOverlay.style.display = 'none';
+      showError('Failed to analyze the interview: ' + error.message);
+    }
+  });
+
+  // Download Excel report handler
+  downloadExcelBtn.addEventListener('click', async function() {
+    if (!currentAnalysisResults) {
+      showError('No analysis results available');
+      return;
+    }
+
+    try {
+      const response = await fetch('/download_assessment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(currentAnalysisResults)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Excel report');
+      }
+
+      // Create a blob from the response
+      const blob = await response.blob();
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${currentAnalysisResults.candidate_name.replace(/\s+/g, '_')}_interview_assessment.xlsx`;
+
+      // Append to the document and trigger click
+      document.body.appendChild(a);
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+      showError('Failed to download Excel report: ' + error.message);
+    }
+  });
+
+  // Print assessment handler
+  printAssessmentBtn.addEventListener('click', function() {
+    window.print();
+  });
+
+  // New analysis handler
+  newAnalysisBtn.addEventListener('click', function() {
+    // Hide results container
+    assessmentResultContainer.style.display = 'none';
+
+    // Reset form
+    uploadForm.reset();
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Function to show error message
+  function showError(message) {
+    console.error('Error:', message);
+    errorModalBody.textContent = message;
+    errorModal.show();
+  }
+
+  // Function to update progress steps
+  function updateProgressStep(step) {
+    console.log('Updating to step:', step);
+    const steps = [step1, step2, step3, step4];
+    const startTime = new Date();
+
+    // Reset all steps
+    steps.forEach((el, index) => {
+      el.classList.remove('active', 'completed');
+      
+      // Add timing element if not exists
+      if (!el.querySelector('.step-time')) {
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'step-time';
+        el.appendChild(timeSpan);
+      }
+
+      // Add status indicator if not exists
+      if (!el.querySelector('.step-status')) {
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'step-status';
+        el.appendChild(statusSpan);
+      }
+    });
+
+    // Update steps based on progress
+    steps.forEach((el, index) => {
+      const stepNum = index + 1;
+      const statusSpan = el.querySelector('.step-status');
+      const timeSpan = el.querySelector('.step-time');
+
+      if (stepNum < step) {
+        el.classList.add('completed');
+        statusSpan.innerHTML = '<i class="fas fa-check text-success"></i>';
+        timeSpan.textContent = '✓';
+      } else if (stepNum === step) {
+        el.classList.add('active');
+        statusSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        timeSpan.textContent = 'Processing...';
+      } else {
+        statusSpan.innerHTML = '';
+        timeSpan.textContent = 'Waiting...';
+      }
+    });
+  }
+
+  // Function to display analysis results
+  async function displayAnalysisResults(results) {
+    console.log('Starting to display results');
+    try {
+      if (!results.candidate_assessment) {
+        throw new Error('Missing candidate assessment data');
+      }
+
+      // Update candidate info
+      const candidateInfo = document.getElementById('candidateInfo');
+      if (!candidateInfo) {
+        throw new Error('Cannot find candidateInfo element');
+      }
+
+      candidateInfo.innerHTML = `
+        <h3>${results.candidate_name || 'Candidate'}</h3>
+        <p class="text-muted">${results.role_applied || 'Role not specified'}</p>
+        <p>Interview Date: ${results.interview_date || new Date().toLocaleDateString()}</p>
+      `;
+      console.log('Updated candidate info');
+
+      // Update scores and assessments
+      await updateAssessmentSection('technical', results.candidate_assessment.technical_knowledge);
+      await updateAssessmentSection('problemSolving', results.candidate_assessment.problem_solving);
+      await updateAssessmentSection('communication', results.candidate_assessment.communication);
+      console.log('Updated assessment sections');
+
+      // Update emotion analysis
+      await updateEmotionAnalysis(results.emotion_analysis);
+      console.log('Updated emotion analysis');
+
+      // Update recommendation
+      await updateRecommendation(results);
+      console.log('Updated recommendation');
+
+      // Update question analysis
+      await updateQuestionAnalysis(results.question_analysis);
+      console.log('Updated question analysis');
+
+      // Update transcript
+      const transcriptText = document.getElementById('transcriptText');
+      if (transcriptText) {
+        transcriptText.textContent = results.transcription || 'No transcript available';
+        console.log('Updated transcript');
+      }
+
+    } catch (error) {
+      console.error('Error in displayAnalysisResults:', error);
+      showError('Error displaying results: ' + error.message);
+    }
+  }
+
+  // Helper function to update assessment sections
+  async function updateAssessmentSection(type, data) {
+    if (!data) {
+      console.warn(`No data provided for ${type} assessment`);
+      return;
+    }
+
+    try {
+      // Update score
+      const scoreElement = document.querySelector(`#${type}Score .score-number`);
+      const progressBar = document.querySelector(`#${type}Score .progress-bar`);
+      
+      if (scoreElement && progressBar) {
+        scoreElement.textContent = data.score || 0;
+        const width = ((data.score || 0) * 10) + '%';
+        progressBar.style.width = width;
+        progressBar.setAttribute('aria-valuenow', data.score || 0);
+      }
+
+      // Update strengths
+      const strengthsList = document.getElementById(`${type}Strengths`);
+      if (strengthsList) {
+        strengthsList.innerHTML = '';
+        (data.strengths || []).forEach(strength => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item';
+          li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>${strength}`;
+          strengthsList.appendChild(li);
+        });
+      }
+
+      // Update improvements
+      const improvementsList = document.getElementById(`${type}Improvements`);
+      if (improvementsList) {
+        improvementsList.innerHTML = '';
+        (data.areas_for_improvement || []).forEach(improvement => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item';
+          li.innerHTML = `<i class="fas fa-arrow-circle-up text-primary me-2"></i>${improvement}`;
+          improvementsList.appendChild(li);
+        });
+      }
+    } catch (error) {
+      console.error(`Error updating ${type} assessment:`, error);
+    }
+  }
+
+  // Helper function to update emotion analysis
+  async function updateEmotionAnalysis(emotionData) {
+    if (!emotionData) {
+      console.warn('No emotion data provided');
+      return;
+    }
+
+    try {
+      const emotionAnalysis = document.getElementById('emotionAnalysis');
+      if (!emotionAnalysis) return;
+
+      emotionAnalysis.innerHTML = '';
+      
+      if (emotionData.emotion_percentages) {
+        const emotions = emotionData.emotion_percentages;
+        const sortedEmotions = Object.entries(emotions)
+          .sort((a, b) => b[1] - a[1])
+          .filter(([_, value]) => value > 0);
+
+        sortedEmotions.forEach(([emotion, percentage]) => {
+          const emotionBar = document.createElement('div');
+          emotionBar.className = `emotion-bar emotion-${emotion.toLowerCase()}`;
+          emotionBar.style.width = `${percentage}%`;
+          emotionBar.style.minWidth = '150px';
+
+          const emotionLabel = document.createElement('span');
+          emotionLabel.className = 'emotion-label';
+          emotionLabel.textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+
+          const emotionPercentage = document.createElement('span');
+          emotionPercentage.className = 'emotion-percentage';
+          emotionPercentage.textContent = `${percentage.toFixed(1)}%`;
+
+          emotionBar.appendChild(emotionLabel);
+          emotionBar.appendChild(emotionPercentage);
+          emotionAnalysis.appendChild(emotionBar);
+        });
+      }
+
+      // Update metrics
+      document.getElementById('totalFaces').textContent = emotionData.total_faces || 0;
+      document.getElementById('framesProcessed').textContent = emotionData.frames_processed || 0;
+      document.getElementById('framesWithFaces').textContent = emotionData.frames_with_faces || 0;
+    } catch (error) {
+      console.error('Error updating emotion analysis:', error);
+    }
+  }
+
+  // Helper function to update recommendation
+  async function updateRecommendation(results) {
+    try {
+      const recommendationBadge = document.querySelector('#overallRecommendation .recommendation-badge');
+      if (!recommendationBadge) return;
+
+      const recommendation = results.overall_recommendation || 'Consider';
+      recommendationBadge.textContent = recommendation;
+      recommendationBadge.className = 'recommendation-badge';
+
+      const recommendationLower = recommendation.toLowerCase();
+      if (recommendationLower.includes('hire')) {
+        recommendationBadge.classList.add('recommendation-hire');
+      } else if (recommendationLower.includes('strong')) {
+        recommendationBadge.classList.add('recommendation-strong');
+      } else if (recommendationLower.includes('consider')) {
+        recommendationBadge.classList.add('recommendation-consider');
+      } else {
+        recommendationBadge.classList.add('recommendation-reject');
+      }
+
+      const feedbackElement = document.getElementById('overallFeedback');
+      if (feedbackElement) {
+        feedbackElement.innerHTML = results.overall_feedback || 'No feedback available';
+      }
+    } catch (error) {
+      console.error('Error updating recommendation:', error);
+    }
+  }
+
+  // Helper function to update question analysis
+  async function updateQuestionAnalysis(questionData) {
+    try {
+      const questionAnalysis = document.getElementById('questionAnalysis');
+      if (!questionAnalysis) return;
+
+      questionAnalysis.innerHTML = '';
+      
+      if (Array.isArray(questionData)) {
+        questionData.forEach(qa => {
+          const questionCard = document.createElement('div');
+          questionCard.className = 'card question-card mb-3';
+          
+          questionCard.innerHTML = `
+            <div class="card-body">
+              <p class="question-text"><i class="fas fa-question-circle me-2"></i>${qa.question || 'Question not available'}</p>
+              <span class="answer-quality ${getQualityClass(qa.answer_quality)}">${qa.answer_quality || 'Not rated'}</span>
+              <p class="mt-2">${qa.feedback || 'No feedback available'}</p>
+            </div>
+          `;
+          
+          questionAnalysis.appendChild(questionCard);
+        });
+      }
+    } catch (error) {
+      console.error('Error updating question analysis:', error);
+    }
+  }
+
+  // Helper function to get the appropriate class for answer quality
+  function getQualityClass(quality) {
+    quality = quality.toLowerCase();
+    if (quality.includes('excellent')) return 'bg-success text-white';
+    if (quality.includes('good')) return 'bg-primary text-white';
+    if (quality.includes('average') || quality.includes('satisfactory')) return 'bg-warning';
+    return 'bg-danger text-white';
+  }
+
+  // Simulated progression for the demo
+  function simulateProgressSteps() {
+    setTimeout(() => updateProgressStep(1), 1000);
+    setTimeout(() => updateProgressStep(2), 3000);
+    setTimeout(() => updateProgressStep(3), 6000);
+    setTimeout(() => updateProgressStep(4), 9000);
+  }
+
+  // For the demo version, show all sections
+  function setupDemoMode() {
+    // Add event listener to show a loading demo
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      loadingOverlay.style.display = 'block';
+      simulateProgressSteps();
+
+      // After "processing" display demo results
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        displayDemoResults();
+      }, 12000);
+    });
+  }
+
+  // If in demo mode, set up the demo interface
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    setupDemoMode();
+  }
+
+  // Add this to your existing JavaScript after DOMContentLoaded
+  const videoFile = document.getElementById('videoFile');
+  const videoPreview = document.getElementById('videoPreview');
+  const videoPreviewContainer = document.querySelector('.video-preview-container');
+  const processingStatus = document.getElementById('processingStatus');
+
+  // Video file preview handler
+  videoFile.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const videoUrl = URL.createObjectURL(file);
+      videoPreview.src = videoUrl;
+      videoPreviewContainer.style.display = 'block';
+      
+      // Show file details
+      processingStatus.innerHTML = `
+        <div class="d-flex align-items-center">
+          <i class="fas fa-check-circle text-success me-2"></i>
+          <div>
+            <strong>File selected:</strong> ${file.name}<br>
+            <small class="text-muted">Size: ${(file.size / (1024 * 1024)).toFixed(2)} MB</small>
+          </div>
+        </div>
+      `;
+      processingStatus.style.display = 'block';
+      processingStatus.className = 'processing-status success';
+    }
+  });
+});
+  </script>
+</body>
+</html>
